@@ -27,36 +27,19 @@
 package provider
 
 import (
-	"context"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
-	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 )
 
-// testAccProtoV6ProviderFactories returns the muxed-provider factory the
-// helper/resource test harness consumes. Mirrors main.go's mux assembly;
-// any change to main.go's provider composition should be mirrored here.
+// testAccProtoV6ProviderFactories returns the framework-provider factory
+// the helper/resource test harness consumes. Mirrors main.go's provider
+// composition — now that sdk/v2 has been removed (commit b135417) we
+// serve the framework provider directly, no mux.
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"weft": func() (tfprotov6.ProviderServer, error) {
-		ctx := context.Background()
-		upgradedSDKv2, err := tf5to6server.UpgradeServer(ctx, New().GRPCProvider)
-		if err != nil {
-			return nil, err
-		}
-		fwSrv := providerserver.NewProtocol6(NewFrameworkProvider("acc-test")())
-		mux, err := tf6muxserver.NewMuxServer(ctx,
-			func() tfprotov6.ProviderServer { return upgradedSDKv2 },
-			fwSrv,
-		)
-		if err != nil {
-			return nil, err
-		}
-		return mux.ProviderServer(), nil
-	},
+	"weft": providerserver.NewProtocol6WithError(NewFrameworkProvider("acc-test")()),
 }
 
 // testAccPreCheck enforces the env vars an acceptance test needs. Called
