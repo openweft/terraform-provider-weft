@@ -1,5 +1,15 @@
 # Migration: `terraform-plugin-sdk/v2` → `terraform-plugin-framework`
 
+## Status
+
+The migration is **complete**. The sdk/v2 shell has been removed entirely;
+main.go now serves the framework provider directly via `providerserver.Serve`
+(no mux). Operators see no behavioural change — protocol 6, same HCL,
+same state file shape.
+
+The table below stays as historical record of which resources moved when;
+all rows are `migrated`.
+
 ## Status (as of v0.2.0-dev)
 
 | Resource / data source | Backend | Status |
@@ -73,6 +83,9 @@ In rough order of payoff:
 
 Once all are migrated, the sdk/v2 dependency can come out of `go.mod`
 entirely and `tf5to6server.UpgradeServer` disappears from `main.go`.
+**Done** — the cleanup commit removed terraform-plugin-sdk/v2 +
+terraform-plugin-mux from go.mod and stripped main.go down to a single
+`providerserver.Serve(...)` call.
 
 ## Operator-facing impact
 
