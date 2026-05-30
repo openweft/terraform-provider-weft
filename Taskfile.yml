@@ -1,0 +1,27 @@
+version: '3'
+
+vars:
+  PLUGIN_DIR: "~/.terraform.d/plugins/registry.terraform.io/openweft/weft/0.1.0/darwin_arm64"
+
+tasks:
+  build:
+    desc: "Build the provider binary"
+    cmds:
+      - go build -mod=mod -o terraform-provider-weft .
+
+  test:
+    desc: "Run unit tests"
+    cmds:
+      - go test -mod=mod -cover ./...
+
+  lint:
+    desc: "Vet the provider"
+    cmds:
+      - go vet -mod=mod ./...
+
+  install:
+    desc: "Install provider for local Terraform dev (~/.terraform.d/plugins/…)"
+    cmds:
+      - mkdir -p "{{.PLUGIN_DIR}}"
+      - go build -mod=mod -o "{{.PLUGIN_DIR}}/terraform-provider-weft" .
+      - echo "Installed to {{.PLUGIN_DIR}}"
