@@ -102,6 +102,7 @@ func (p *weftProvider) Resources(_ context.Context) []func() resource.Resource {
 		NewImageResource,
 		NewImagePatchResource,
 		NewImagesResource,
+		NewHostResource, // first NEW (non-migrated) framework resource — closes the biggest Hosts-service gap from GAPS.md.
 	}
 }
 
