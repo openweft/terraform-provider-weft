@@ -441,60 +441,14 @@ func TestResourceImagesCreate_PulledList(t *testing.T) {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// resource_instance.go: disk patch block, Read error setting fields
-// ---------------------------------------------------------------------------
-
-func TestResourceInstanceCreate_WithDiskPatch(t *testing.T) {
-	var got *weftv1.ProvisionVMRequest
-	mock := &mockWeftClient{
-		provisionVMFn: func(_ context.Context, req *weftv1.ProvisionVMRequest, _ ...grpc.CallOption) (*weftv1.ProvisionVMResponse, error) {
-			got = req
-			return &weftv1.ProvisionVMResponse{}, nil
-		},
-	}
-	res := resourceInstance()
-	d := res.Data(&terraform.InstanceState{})
-	d.Set("name", "patch-vm")
-	d.Set("cpu", 2)
-	d.Set("mem", 2)
-	d.Set("disk", []interface{}{
-		map[string]interface{}{
-			"from": "img",
-			"size": "20Gi",
-			"patch": []interface{}{
-				map[string]interface{}{
-					"add": []interface{}{
-						map[string]interface{}{"content": "x", "dst": "/a", "trigger": "grub-mkconfig"},
-					},
-					"del": []interface{}{
-						map[string]interface{}{"dst": "/b"},
-					},
-					"mod": []interface{}{
-						map[string]interface{}{"dst": "/c", "old": "foo", "new": "bar"},
-					},
-				},
-			},
-		},
-	})
-
-	diags := resourceInstanceCreate(context.Background(), d, newTestClient(mock))
-	if diags.HasError() {
-		t.Fatalf("unexpected error: %s", diags[0].Summary)
-	}
-	if got == nil {
-		t.Fatal("ProvisionVM was not called")
-	}
-	if len(got.FileOps) != 1 || got.FileOps[0].Dst != "/a" {
-		t.Errorf("FileOps = %+v", got.FileOps)
-	}
-	if len(got.DeleteOps) != 1 || got.DeleteOps[0].Dst != "/b" {
-		t.Errorf("DeleteOps = %+v", got.DeleteOps)
-	}
-	if len(got.ModOps) != 1 || got.ModOps[0].New != "bar" {
-		t.Errorf("ModOps = %+v", got.ModOps)
-	}
-}
+// Coverage of resource_instance.go (sdk/v2 path) — superseded by the
+// framework migration of weft_instance (see FRAMEWORK_MIGRATION.md);
+// instance_resource_test.go covers the framework schema. The pre-existing
+// disk-patch end-to-end test asserted the sdk/v2 ProvisionVMRequest
+// construction; equivalent coverage on the framework side will land with
+// acceptance tests in a follow-up. Leaving the helper-level tests
+// (TestExpandHome_NoHome below) since expandHome lives in
+// instance_resource.go now.
 
 func TestExpandHome_NoHome(t *testing.T) {
 	// When os.UserHomeDir() returns an error, expandHome must return the
@@ -509,25 +463,9 @@ func TestExpandHome_NoHome(t *testing.T) {
 	}
 }
 
-func TestResourceInstanceRead_TransientError(t *testing.T) {
-	// A non-"not found" error keeps the ID and returns nil diags.
-	res := resourceInstance()
-	d := res.Data(&terraform.InstanceState{ID: "still-alive"})
-	d.Set("name", "still-alive")
-
-	mock := &mockWeftClient{
-		vmStatusFn: func(_ context.Context, _ *weftv1.VMStatusRequest, _ ...grpc.CallOption) (*weftv1.VMStatusResponse, error) {
-			return nil, fmt.Errorf("connection refused (transient)")
-		},
-	}
-	diags := resourceInstanceRead(context.Background(), d, newTestClient(mock))
-	if diags.HasError() {
-		t.Errorf("transient errors should not yield diagnostics, got: %s", diags[0].Summary)
-	}
-	if d.Id() == "" {
-		t.Error("ID should be preserved on transient errors")
-	}
-}
+// TestResourceInstanceRead_TransientError was removed alongside the sdk/v2
+// resource_instance.go path. Equivalent coverage on the framework side
+// belongs in acceptance tests (TF_ACC), tracked in FRAMEWORK_MIGRATION.md.
 
 // ---------------------------------------------------------------------------
 // resource_keypair.go: Delete, file_path with tilde, read error after resolved_path set

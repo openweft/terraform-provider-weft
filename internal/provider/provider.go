@@ -36,9 +36,11 @@ func New() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			// weft_instance moved to the framework half — see
+			// FRAMEWORK_MIGRATION.md. Remaining entries migrate one at a
+			// time, then this whole sdk/v2 provider goes away.
 			"weft_deployment":  resourceDeployment(),
 			"weft_endpoint":    resourceEndpoint(),
-			"weft_instance":    resourceInstance(),
 			"weft_image":       resourceImage(),
 			"weft_image_patch": resourceImagePatch(),
 			"weft_images":      resourceImages(),

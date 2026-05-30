@@ -23,8 +23,11 @@ func TestProviderSchema(t *testing.T) {
 }
 
 func TestProviderHasResources(t *testing.T) {
+	// weft_instance moved to the framework half of the muxed provider and
+	// no longer appears in sdk/v2's ResourcesMap — instance_resource_test.go
+	// covers it. Each subsequent migration removes another entry here.
 	p := New()
-	resources := []string{"weft_deployment", "weft_endpoint", "weft_instance", "weft_image", "weft_images", "weft_keypair"}
+	resources := []string{"weft_deployment", "weft_endpoint", "weft_image", "weft_images", "weft_keypair"}
 	for _, name := range resources {
 		if _, ok := p.ResourcesMap[name]; !ok {
 			t.Errorf("provider missing resource %q", name)
