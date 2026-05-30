@@ -51,6 +51,10 @@ func TestFrameworkProvider_HasExpectedResources(t *testing.T) {
 		"weft_images",
 		"weft_instance",
 		"weft_keypair",
+		"weft_network",
+		"weft_security_group",
+		"weft_tenant",
+		"weft_volume",
 	}
 	sort.Strings(got)
 	if !equalStrings(got, want) {

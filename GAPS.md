@@ -1,7 +1,7 @@
 # Gap Analysis — terraform-provider-weft vs weft-proto
 
 Snapshot date: 2026-05-30. Based on `weft-proto/{weft,agent,guest,introspect}.proto`
-and `internal/provider/provider.go` ResourcesMap.
+and `internal/provider/framework_provider.go` Resources().
 
 ## Mapped resources
 
@@ -14,10 +14,21 @@ and `internal/provider/provider.go` ResourcesMap.
 | `weft_images` | `PullImages` (Create) |
 | `weft_endpoint` | _none — local-only URL declaration_ |
 | `weft_keypair` | _none — reads `<file_path>.pub` from disk_ |
+| `weft_host` | `RegisterHost` (Create/Update) · `GetHost` (Read) · `DeleteHost` (Delete) |
+| `weft_network` | `CreateNetwork` · `ListNetworks` (Read) · `RenameNetwork` · `SetNetworkDNS` · `SetNetworkDefaultSecurityGroups` · `DeleteNetwork` |
+| `weft_volume` | `CreateVolume` · `ListVolumes` (Read) · `RenameVolume` · `ResizeVolume` · `DeleteVolume` |
+| `weft_security_group` | `CreateSecurityGroup` · `ListSecurityGroups` (Read) · `RenameSecurityGroup` · `SetSecurityGroupDescription` · `SetSecurityGroupRules` · `DeleteSecurityGroup` |
+| `weft_tenant` | `CreateTenant` · `ListTenants` (Read) · `DeleteTenant` |
 | `weft_config` (data) | _none — parses local HCL via `openweft/hclconfig`_ |
 
 **Used WeftAgent RPCs:** `ProvisionVM`, `DeprovisionVM`, `VMStatus`, `PullImage`,
-`PullImages`, `PatchImage`, `ListImages` (7 of 70 total).
+`PullImages`, `PatchImage`, `ListImages`, `RegisterHost`, `GetHost`,
+`DeleteHost`, `CreateNetwork`, `ListNetworks`, `RenameNetwork`,
+`SetNetworkDNS`, `SetNetworkDefaultSecurityGroups`, `DeleteNetwork`,
+`CreateVolume`, `ListVolumes`, `RenameVolume`, `ResizeVolume`, `DeleteVolume`,
+`CreateSecurityGroup`, `ListSecurityGroups`, `RenameSecurityGroup`,
+`SetSecurityGroupDescription`, `SetSecurityGroupRules`, `DeleteSecurityGroup`,
+`CreateTenant`, `ListTenants`, `DeleteTenant` (30 of 70 total).
 
 ## Unmapped RPCs
 
@@ -169,8 +180,8 @@ and `internal/provider/provider.go` ResourcesMap.
 
 ## Coverage summary
 
-- **WeftAgent service:** 7 / 70 RPCs covered (10%).
-- **All proto services combined:** 7 / 76 RPCs covered (9%).
+- **WeftAgent service:** 30 / 70 RPCs covered (≈ 43%).
+- **All proto services combined:** 30 / 76 RPCs covered (≈ 39%).
   - WeftAgent: 70 RPCs
   - AgentDispatch: 1 RPC (internal)
   - AgentControlPlane: 3 RPCs (internal)
@@ -182,10 +193,13 @@ imperative actions `StartVM`/`StopVM`/`WaitVM`/`CleanImages`/`HeartbeatHost`,
 streaming `WatchEvents`/`Connect`/`Attach*`, and pure-internal
 `RegisterMicroVM`/`RegisterAgent`/`Heartbeat`):
 
-- **Stateful surface:** 7 / ~58 RPCs covered (≈ 12%).
+- **Stateful surface:** 30 / ~58 RPCs covered (≈ 52%).
 
-The biggest unmapped categories — by RPC count — are: Hosts (7), SecurityGroups (6),
-Volumes (7), Tenants (7), Quotas (4), Networks (6), Projects (7), FloatingIPs (5),
-Flavors (4), Scripts (4), VM properties + UEFI + SSH keys (9). These map cleanly
-to a standard cloud-style resource set and should be the next milestone, ideally
-on top of the in-progress terraform-plugin-framework migration.
+The remaining unmapped categories — by RPC count — are: Projects (7), Tenant
+membership/admin (4), Quotas (4), FloatingIPs (5), Flavors (4), Scripts (4),
+VM properties + UEFI + SSH keys (9), Shares (3+1), Users (5). Volume attach /
+detach (`AttachVolume`/`DetachVolume`) is also unmapped pending a
+`weft_volume_attachment` resource. There is **no SchedulingRule service** in
+the proto today — `scheduling_rule` is a free-form label on
+`CreateVMRequest`, not a CRUD-shaped resource, so `weft_scheduling_rule` is
+deliberately not on the roadmap.

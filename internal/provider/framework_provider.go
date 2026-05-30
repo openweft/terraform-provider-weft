@@ -103,6 +103,13 @@ func (p *weftProvider) Resources(_ context.Context) []func() resource.Resource {
 		NewImagePatchResource,
 		NewImagesResource,
 		NewHostResource, // first NEW (non-migrated) framework resource — closes the biggest Hosts-service gap from GAPS.md.
+		NewNetworkResource,
+		NewVolumeResource,
+		NewSecurityGroupResource,
+		NewTenantResource,
+		// weft_scheduling_rule: skipped — the proto has no SchedulingRule
+		// service (scheduling_rule is a label on CreateVMRequest, not a
+		// standalone CRUD resource). See commit message + GAPS.md.
 	}
 }
 
