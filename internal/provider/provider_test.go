@@ -22,25 +22,16 @@ func TestProviderSchema(t *testing.T) {
 	}
 }
 
-func TestProviderHasResources(t *testing.T) {
-	// weft_instance moved to the framework half of the muxed provider and
-	// no longer appears in sdk/v2's ResourcesMap — instance_resource_test.go
-	// covers it. Each subsequent migration removes another entry here.
+// TestProviderEmptyResourceMaps asserts that the sdk/v2 provider has shed
+// all resources/data sources — they now all live in the framework half (see
+// framework_provider.go and FRAMEWORK_MIGRATION.md). A follow-up cleanup
+// commit removes tf5to6server from main.go and this whole sdk/v2 provider.
+func TestProviderEmptyResourceMaps(t *testing.T) {
 	p := New()
-	resources := []string{"weft_deployment", "weft_endpoint", "weft_image", "weft_images", "weft_keypair"}
-	for _, name := range resources {
-		if _, ok := p.ResourcesMap[name]; !ok {
-			t.Errorf("provider missing resource %q", name)
-		}
+	if len(p.ResourcesMap) != 0 {
+		t.Errorf("sdk/v2 ResourcesMap should be empty, got %d entries", len(p.ResourcesMap))
 	}
-}
-
-func TestProviderHasDataSources(t *testing.T) {
-	p := New()
-	dataSources := []string{"weft_config"}
-	for _, name := range dataSources {
-		if _, ok := p.DataSourcesMap[name]; !ok {
-			t.Errorf("provider missing data source %q", name)
-		}
+	if len(p.DataSourcesMap) != 0 {
+		t.Errorf("sdk/v2 DataSourcesMap should be empty, got %d entries", len(p.DataSourcesMap))
 	}
 }

@@ -5,13 +5,13 @@
 | Resource / data source | Backend | Status |
 |---|---|---|
 | `weft_instance` | **framework** | migrated |
-| `weft_image` | sdk/v2 | pending |
-| `weft_image_patch` | sdk/v2 | pending |
-| `weft_images` | sdk/v2 | pending |
-| `weft_endpoint` | sdk/v2 | pending |
-| `weft_keypair` | sdk/v2 | pending |
-| `weft_deployment` | sdk/v2 | pending |
-| data `weft_config` | sdk/v2 | pending |
+| `weft_image` | **framework** | migrated |
+| `weft_image_patch` | **framework** | migrated |
+| `weft_images` | **framework** | migrated |
+| `weft_endpoint` | **framework** | migrated |
+| `weft_keypair` | **framework** | migrated |
+| `weft_deployment` | **framework** | migrated |
+| data `weft_config` | **framework** | migrated |
 
 Both backends are served from one provider binary via
 `terraform-plugin-mux/tf6muxserver`. HashiCorp's recommended path:

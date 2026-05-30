@@ -35,20 +35,12 @@ func New() *schema.Provider {
 				Description: "Path to SSH private key for authentication (enables SSH transport).",
 			},
 		},
-		ResourcesMap: map[string]*schema.Resource{
-			// weft_instance moved to the framework half — see
-			// FRAMEWORK_MIGRATION.md. Remaining entries migrate one at a
-			// time, then this whole sdk/v2 provider goes away.
-			"weft_deployment":  resourceDeployment(),
-			"weft_endpoint":    resourceEndpoint(),
-			"weft_image":       resourceImage(),
-			"weft_image_patch": resourceImagePatch(),
-			"weft_images":      resourceImages(),
-			"weft_keypair":     resourceKeypair(),
-		},
-		DataSourcesMap: map[string]*schema.Resource{
-			"weft_config": dataSourceConfig(),
-		},
+		// All resources and data sources have migrated to the framework
+		// half (see framework_provider.go and FRAMEWORK_MIGRATION.md).
+		// This sdk/v2 provider remains in place until a follow-up cleanup
+		// commit removes tf5to6server from main.go.
+		ResourcesMap:   map[string]*schema.Resource{},
+		DataSourcesMap: map[string]*schema.Resource{},
 		ConfigureContextFunc: configureProvider,
 	}
 }

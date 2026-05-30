@@ -91,18 +91,25 @@ func (p *weftProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 	resp.DataSourceData = client
 }
 
-// Resources returns the resources served by the framework half. Each entry
-// migrates from provider.go's ResourcesMap; see FRAMEWORK_MIGRATION.md.
+// Resources returns the resources served by the framework half. The sdk/v2
+// half's ResourcesMap is now empty — see FRAMEWORK_MIGRATION.md.
 func (p *weftProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewInstanceResource,
+		NewKeypairResource,
+		NewEndpointResource,
+		NewDeploymentResource,
+		NewImageResource,
+		NewImagePatchResource,
+		NewImagesResource,
 	}
 }
 
-// DataSources — none yet; weft_config moves over once its sibling resources
-// have migrated (see FRAMEWORK_MIGRATION.md).
+// DataSources returns the data sources served by the framework half.
 func (p *weftProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return nil
+	return []func() datasource.DataSource{
+		NewConfigDataSource,
+	}
 }
 
 // envOr resolves a configured attribute against env-default-or-fallback.
