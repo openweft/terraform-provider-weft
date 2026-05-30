@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: vet
+        run: go vet ./...
+
+      - name: build (${{ matrix.goos }}/${{ matrix.goarch }})
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build ./...
+
+      - name: test
+        # Tests run on linux/amd64 only; cross-arch execution needs qemu
+        # and we ship a pure-Go provider so native coverage on host arch suffices.
+        if: matrix.goos == 'linux' && matrix.goarch == 'amd64'
+        run: go test -race -count=1 ./...
+
+  terraform-fmt:
+    runs-on: ubuntu-latest
+    # No-op until examples/ lands; gates auto-activates when it does.
+    if: hashFiles('examples/**') != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive examples/

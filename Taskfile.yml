@@ -25,3 +25,8 @@ tasks:
       - mkdir -p "{{.PLUGIN_DIR}}"
       - go build -mod=mod -o "{{.PLUGIN_DIR}}/terraform-provider-weft" .
       - echo "Installed to {{.PLUGIN_DIR}}"
+
+  release-snapshot:
+    desc: "Dry-run a goreleaser release locally (no tag, no publish)"
+    cmds:
+      - goreleaser release --snapshot --clean
