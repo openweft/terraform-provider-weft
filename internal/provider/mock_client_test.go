@@ -265,6 +265,22 @@ func (m *mockWeftClient) DeleteVolume(_ context.Context, _ *weftv1.DeleteVolumeR
 	return &weftv1.DeleteVolumeResponse{}, nil
 }
 
+func (m *mockWeftClient) CreateVolumeSnapshot(_ context.Context, _ *weftv1.CreateVolumeSnapshotRequest, _ ...grpc.CallOption) (*weftv1.CreateVolumeSnapshotResponse, error) {
+	return &weftv1.CreateVolumeSnapshotResponse{Snapshot: &weftv1.VolumeSnapshotInfo{}}, nil
+}
+
+func (m *mockWeftClient) ListVolumeSnapshots(_ context.Context, _ *weftv1.ListVolumeSnapshotsRequest, _ ...grpc.CallOption) (*weftv1.ListVolumeSnapshotsResponse, error) {
+	return &weftv1.ListVolumeSnapshotsResponse{}, nil
+}
+
+func (m *mockWeftClient) RestoreVolumeSnapshot(_ context.Context, _ *weftv1.RestoreVolumeSnapshotRequest, _ ...grpc.CallOption) (*weftv1.RestoreVolumeSnapshotResponse, error) {
+	return &weftv1.RestoreVolumeSnapshotResponse{Volume: &weftv1.VolumeInfo{}}, nil
+}
+
+func (m *mockWeftClient) DeleteVolumeSnapshot(_ context.Context, _ *weftv1.DeleteVolumeSnapshotRequest, _ ...grpc.CallOption) (*weftv1.DeleteVolumeSnapshotResponse, error) {
+	return &weftv1.DeleteVolumeSnapshotResponse{}, nil
+}
+
 func (m *mockWeftClient) WatchEvents(_ context.Context, _ *weftv1.WatchEventsRequest, _ ...grpc.CallOption) (grpc.ServerStreamingClient[weftv1.PlatformEvent], error) {
 	return nil, nil
 }
