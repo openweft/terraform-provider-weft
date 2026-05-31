@@ -14,6 +14,18 @@ tasks:
     cmds:
       - go test -mod=mod -cover ./...
 
+  acceptance:
+    desc: "Run acceptance tests against a live weft daemon (requires WEFT_SOCKET)"
+    cmds:
+      - |
+        if [ -z "$WEFT_SOCKET" ]; then
+          echo "WEFT_SOCKET not set — point it at a live weft daemon, e.g."
+          echo "  export WEFT_SOCKET=unix:///tmp/acc-weft/weft.sock"
+          echo "Skipping acceptance suite."
+          exit 0
+        fi
+        TF_ACC=1 go test -tags acceptance -timeout 30m -count=1 ./internal/provider/...
+
   lint:
     desc: "Vet the provider"
     cmds:

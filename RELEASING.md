@@ -113,9 +113,17 @@ git status   # if docs/ changed, commit + push BEFORE tagging
 go vet ./...
 go test -race ./...
 goreleaser release --snapshot --clean   # dry run, produces dist/
+
+# 4. Acceptance suite against a live weft daemon — catches resource
+#    regressions (schema drift, plan-time crashes, broken Read paths)
+#    that unit tests can't see.
+export WEFT_SOCKET=unix:///tmp/acc-weft/weft.sock
+task acceptance
 ```
 
-If `release --snapshot` succeeds, the tag-driven release will too.
+Before tagging, run `task acceptance` against a live weft daemon and
+check no resource regressions surface. If `release --snapshot` succeeds
+and the acceptance suite is green, the tag-driven release will too.
 
 ### Tag + push
 
