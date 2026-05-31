@@ -105,6 +105,7 @@ func (p *weftProvider) Resources(_ context.Context) []func() resource.Resource {
 		NewHostResource, // first NEW (non-migrated) framework resource — closes the biggest Hosts-service gap from GAPS.md.
 		NewNetworkResource,
 		NewVolumeResource,
+		NewVolumeSnapshotResource,
 		NewSecurityGroupResource,
 		NewTenantResource,
 		// weft_scheduling_rule: skipped — the proto has no SchedulingRule

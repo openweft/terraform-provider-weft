@@ -7,10 +7,9 @@ require (
 	github.com/hashicorp/terraform-plugin-docs v0.25.0
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
-	github.com/hashicorp/terraform-plugin-mux v0.23.1
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/openweft/hclconfig v0.0.0
-	github.com/openweft/weft-proto v0.0.0
+	github.com/openweft/weft-proto v0.2.0
 	google.golang.org/grpc v1.80.0
 )
 
