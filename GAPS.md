@@ -1,7 +1,14 @@
 # Gap Analysis — terraform-provider-weft vs weft-proto
 
-Snapshot date: 2026-05-30. Based on `weft-proto/{weft,agent,guest,introspect}.proto`
+Snapshot date: 2026-05-31. Based on `weft-proto/{weft,agent,guest,introspect}.proto`
 and `internal/provider/framework_provider.go` Resources().
+
+This is the second pass — the first one (2026-05-30) was written when only 7/70
+RPCs were covered and recorded a `WeftAgent` total of 70. Since then both sides
+have moved: 6 new resources landed (`weft_host`, `weft_network`, `weft_volume`,
+`weft_security_group`, `weft_tenant`, `weft_volume_snapshot`), and `weft-proto`
+grew the `VolumeSnapshot` quadruplet plus a handful of other RPCs. The current
+WeftAgent surface is **98 RPCs**, not 70.
 
 ## Mapped resources
 
@@ -17,18 +24,20 @@ and `internal/provider/framework_provider.go` Resources().
 | `weft_host` | `RegisterHost` (Create/Update) · `GetHost` (Read) · `DeleteHost` (Delete) |
 | `weft_network` | `CreateNetwork` · `ListNetworks` (Read) · `RenameNetwork` · `SetNetworkDNS` · `SetNetworkDefaultSecurityGroups` · `DeleteNetwork` |
 | `weft_volume` | `CreateVolume` · `ListVolumes` (Read) · `RenameVolume` · `ResizeVolume` · `DeleteVolume` |
+| `weft_volume_snapshot` | `CreateVolumeSnapshot` · `ListVolumeSnapshots` (Read) · `DeleteVolumeSnapshot` |
 | `weft_security_group` | `CreateSecurityGroup` · `ListSecurityGroups` (Read) · `RenameSecurityGroup` · `SetSecurityGroupDescription` · `SetSecurityGroupRules` · `DeleteSecurityGroup` |
 | `weft_tenant` | `CreateTenant` · `ListTenants` (Read) · `DeleteTenant` |
 | `weft_config` (data) | _none — parses local HCL via `openweft/hclconfig`_ |
 
-**Used WeftAgent RPCs:** `ProvisionVM`, `DeprovisionVM`, `VMStatus`, `PullImage`,
-`PullImages`, `PatchImage`, `ListImages`, `RegisterHost`, `GetHost`,
-`DeleteHost`, `CreateNetwork`, `ListNetworks`, `RenameNetwork`,
+**Used WeftAgent RPCs (33):** `ProvisionVM`, `DeprovisionVM`, `VMStatus`,
+`PullImage`, `PullImages`, `PatchImage`, `ListImages`, `RegisterHost`,
+`GetHost`, `DeleteHost`, `CreateNetwork`, `ListNetworks`, `RenameNetwork`,
 `SetNetworkDNS`, `SetNetworkDefaultSecurityGroups`, `DeleteNetwork`,
 `CreateVolume`, `ListVolumes`, `RenameVolume`, `ResizeVolume`, `DeleteVolume`,
+`CreateVolumeSnapshot`, `ListVolumeSnapshots`, `DeleteVolumeSnapshot`,
 `CreateSecurityGroup`, `ListSecurityGroups`, `RenameSecurityGroup`,
 `SetSecurityGroupDescription`, `SetSecurityGroupRules`, `DeleteSecurityGroup`,
-`CreateTenant`, `ListTenants`, `DeleteTenant` (30 of 70 total).
+`CreateTenant`, `ListTenants`, `DeleteTenant`.
 
 ## Unmapped RPCs
 
@@ -37,15 +46,15 @@ and `internal/provider/framework_provider.go` Resources().
 | RPC | Suggested Terraform surface |
 |---|---|
 | `ListVMs` | `data.weft_vms` (data source) |
-| `StartVM` | (action, not stateful — Terraform-incompatible; use `terraform_data` + provisioner, or expose `desired_state = "running" \| "stopped"` on `weft_instance`) |
-| `StopVM` | (action, not stateful — Terraform-incompatible; same note) |
+| `StartVM` | **imperative — Terraform-incompatible**; expose `desired_state = "running" \| "stopped"` on `weft_instance` or run via `terraform_data` provisioner |
+| `StopVM` | **imperative — Terraform-incompatible**; same note |
 | `CreateVM` | _superset of `ProvisionVM`_ — fold into `weft_instance` once framework migration lands (project, scheduling_rule, network attributes) |
 | `DeleteVM` | _covered by `weft_instance` delete_ (DeprovisionVM is the post-CreateVM equivalent) |
-| `WaitVM` | (action — wrap as `data.weft_vm_state` poller, or absorb into `weft_instance` create timeout) |
-| `RegisterMicroVM` | (internal scheduling primitive — keep off Terraform surface) |
+| `WaitVM` | **imperative — Terraform-incompatible**; wrap as `data.weft_vm_state` poller, or absorb into `weft_instance` create timeout |
+| `RegisterMicroVM` | _internal scheduling primitive — keep off Terraform surface_ |
 | `VMTimings` | `data.weft_vm_timings` |
 | `VMLogs` | `data.weft_vm_logs` |
-| `CleanImages` | (action — `weft_image_clean` with `triggers` or pure `terraform_data`) |
+| `CleanImages` | **imperative — Terraform-incompatible**; `weft_image_clean` with `triggers`, or pure `terraform_data` |
 
 ### WeftAgent — Projects & ACL
 
@@ -70,45 +79,57 @@ and `internal/provider/framework_provider.go` Resources().
 | RPC | Suggested resource |
 |---|---|
 | `ListNetworks` | `data.weft_networks` |
-| `CreateNetwork` / `DeleteNetwork` | `weft_network` |
-| `RenameNetwork` | _Update on `weft_network.name`_ |
-| `SetNetworkDNS` | _Update on `weft_network.dns`_ |
-| `SetNetworkDefaultSecurityGroups` | _Update on `weft_network.default_security_groups`_ |
+
+(CreateNetwork / DeleteNetwork / RenameNetwork / SetNetworkDNS /
+SetNetworkDefaultSecurityGroups already covered by `weft_resource_network`.)
 
 ### WeftAgent — Security groups
 
 | RPC | Suggested resource |
 |---|---|
 | `ListSecurityGroups` | `data.weft_security_groups` |
-| `CreateSecurityGroup` / `DeleteSecurityGroup` | `weft_security_group` |
-| `RenameSecurityGroup` / `SetSecurityGroupDescription` / `SetSecurityGroupRules` | _Update on `weft_security_group.{name,description,rules}`_ |
+
+(CreateSecurityGroup / DeleteSecurityGroup / RenameSecurityGroup /
+SetSecurityGroupDescription / SetSecurityGroupRules already covered by
+`weft_security_group`.)
 
 ### WeftAgent — Volumes
 
 | RPC | Suggested resource |
 |---|---|
 | `ListVolumes` | `data.weft_volumes` |
-| `CreateVolume` / `DeleteVolume` | `weft_volume` |
-| `RenameVolume` / `ResizeVolume` | _Update on `weft_volume.{name,size_gb}`_ |
 | `AttachVolume` / `DetachVolume` | `weft_volume_attachment` |
+
+(CreateVolume / DeleteVolume / RenameVolume / ResizeVolume already covered by
+`weft_volume`.)
+
+### WeftAgent — Volume snapshots
+
+| RPC | Suggested resource |
+|---|---|
+| `ListVolumeSnapshots` | `data.weft_volume_snapshots` |
+| `RestoreVolumeSnapshot` | **imperative — Terraform-incompatible** (mutates an existing volume in-place); expose via `terraform_data` + provisioner, or as a one-shot `null_resource`-style trigger |
+
+(CreateVolumeSnapshot / DeleteVolumeSnapshot already covered by
+`weft_volume_snapshot`.)
 
 ### WeftAgent — Events & infra
 
 | RPC | Suggested resource |
 |---|---|
-| `WatchEvents` | (streaming — Terraform-incompatible; consume via separate sidecar or `external` data source one-shot) |
+| `WatchEvents` | **streaming — Terraform-incompatible**; consume via separate sidecar or `external` data source one-shot |
 | `RenderNATSAuthorization` | `data.weft_nats_authorization` |
 
 ### WeftAgent — Hosts (compute pool)
 
 | RPC | Suggested resource |
 |---|---|
-| `RegisterHost` | `weft_host` (Create) |
-| `ListHosts` / `GetHost` | `data.weft_hosts`, `data.weft_host` |
-| `HeartbeatHost` | (internal agent loop — not a Terraform concern) |
+| `ListHosts` | `data.weft_hosts` |
+| `HeartbeatHost` | _internal agent loop — not a Terraform concern_ |
 | `SetHostState` | _Update on `weft_host.state`_ (drain/cordon semantics) |
 | `SetHostLabels` | _Update on `weft_host.labels`_ |
-| `DeleteHost` | `weft_host` (Delete) |
+
+(RegisterHost / GetHost / DeleteHost already covered by `weft_host`.)
 
 ### WeftAgent — Shares
 
@@ -123,9 +144,10 @@ and `internal/provider/framework_provider.go` Resources().
 | RPC | Suggested resource |
 |---|---|
 | `ListTenants` | `data.weft_tenants` |
-| `CreateTenant` / `DeleteTenant` | `weft_tenant` |
 | `AddTenantAdmin` / `RemoveTenantAdmin` | `weft_tenant_admin` |
 | `AddTenantMember` / `RemoveTenantMember` | `weft_tenant_member` |
+
+(CreateTenant / DeleteTenant already covered by `weft_tenant`.)
 
 ### WeftAgent — Quotas
 
@@ -180,26 +202,49 @@ and `internal/provider/framework_provider.go` Resources().
 
 ## Coverage summary
 
-- **WeftAgent service:** 30 / 70 RPCs covered (≈ 43%).
-- **All proto services combined:** 30 / 76 RPCs covered (≈ 39%).
-  - WeftAgent: 70 RPCs
+- **WeftAgent service:** 33 / 98 RPCs covered (≈ **34%**).
+- **All proto services combined:** 33 / 104 RPCs covered (≈ **32%**).
+  - WeftAgent: 98 RPCs
   - AgentDispatch: 1 RPC (internal)
   - AgentControlPlane: 3 RPCs (internal)
   - GuestPodPlane: 1 RPC (internal)
   - Introspect: 1 RPC (debug)
 
-If we restrict the denominator to **stateful, Terraform-shaped RPCs** (excluding
-imperative actions `StartVM`/`StopVM`/`WaitVM`/`CleanImages`/`HeartbeatHost`,
-streaming `WatchEvents`/`Connect`/`Attach*`, and pure-internal
-`RegisterMicroVM`/`RegisterAgent`/`Heartbeat`):
+### Terraform-incompatible RPCs (flagged explicitly)
 
-- **Stateful surface:** 30 / ~58 RPCs covered (≈ 52%).
+These RPCs are imperative actions or streams — they don't have stateful
+identity, so they can't be the primary subject of a Terraform resource. They
+are deliberately excluded from coverage denominators.
 
-The remaining unmapped categories — by RPC count — are: Projects (7), Tenant
-membership/admin (4), Quotas (4), FloatingIPs (5), Flavors (4), Scripts (4),
-VM properties + UEFI + SSH keys (9), Shares (3+1), Users (5). Volume attach /
-detach (`AttachVolume`/`DetachVolume`) is also unmapped pending a
-`weft_volume_attachment` resource. There is **no SchedulingRule service** in
-the proto today — `scheduling_rule` is a free-form label on
-`CreateVMRequest`, not a CRUD-shaped resource, so `weft_scheduling_rule` is
-deliberately not on the roadmap.
+| RPC | Reason |
+|---|---|
+| `StartVM` | imperative (state transition, not identity) |
+| `StopVM` | imperative |
+| `WaitVM` | imperative (poll) |
+| `CleanImages` | imperative (GC) |
+| `RestoreVolumeSnapshot` | imperative (in-place mutation of an existing volume) |
+| `HeartbeatHost` | internal agent liveness loop |
+| `RegisterMicroVM` | internal scheduling primitive |
+| `WatchEvents` | streaming |
+| `AgentDispatch.Connect` | streaming, internal |
+| `AgentControlPlane.AttachDrivers` | streaming, internal |
+| `AgentControlPlane.RegisterAgent` / `Heartbeat` | internal bootstrap/liveness |
+| `GuestPodPlane.Attach` | streaming, guest-side |
+
+If we restrict the denominator to **stateful, Terraform-shaped RPCs** (WeftAgent
+only, excluding the 9 WeftAgent RPCs flagged above — `StartVM`, `StopVM`,
+`WaitVM`, `CleanImages`, `RestoreVolumeSnapshot`, `HeartbeatHost`,
+`RegisterMicroVM`, `WatchEvents`, and treating `CreateVM`/`DeleteVM` as
+covered-by `ProvisionVM`/`DeprovisionVM`):
+
+- **Stateful denominator:** 98 − 9 − 2 = **87 RPCs**.
+- **Stateful coverage:** 33 / 87 ≈ **38%**.
+
+The remaining unmapped categories — by RPC count — are: VM-properties + UEFI +
+SSH keys (9), Projects (7), Floating IPs (5), Users (5), Tenant
+membership/admin (4), Quotas (4), Flavors (4), Scripts (4), Shares (4),
+Volume attach/detach (2), Host list/state/labels (3), List* data sources for
+already-mapped resources (5). There is **no SchedulingRule service** in the
+proto today — `scheduling_rule` is a free-form label on `CreateVMRequest`, not
+a CRUD-shaped resource, so `weft_scheduling_rule` is deliberately not on the
+roadmap.
