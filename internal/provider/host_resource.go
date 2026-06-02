@@ -179,7 +179,10 @@ func (r *hostResource) Create(ctx context.Context, req resource.CreateRequest, r
 		resp.Diagnostics.AddError("RegisterHost failed", err.Error())
 		return
 	}
-	plan.applyHostInfo(out.GetHost())
+	resp.Diagnostics.Append(plan.applyHostInfo(ctx, out.GetHost())...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -199,7 +202,10 @@ func (r *hostResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		resp.Diagnostics.AddError("GetHost failed", err.Error())
 		return
 	}
-	state.applyHostInfo(out.GetHost())
+	resp.Diagnostics.Append(state.applyHostInfo(ctx, out.GetHost())...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -227,7 +233,10 @@ func (r *hostResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		resp.Diagnostics.AddError("RegisterHost (update) failed", err.Error())
 		return
 	}
-	plan.applyHostInfo(out.GetHost())
+	resp.Diagnostics.Append(plan.applyHostInfo(ctx, out.GetHost())...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -277,9 +286,10 @@ func (m *hostModel) toRegisterRequest(ctx context.Context) (*weftv1.RegisterHost
 
 // applyHostInfo reflects the server's response back into the model so
 // Computed fields stay in sync with state.
-func (m *hostModel) applyHostInfo(h *weftv1.HostInfo) {
+func (m *hostModel) applyHostInfo(ctx context.Context, h *weftv1.HostInfo) diag.Diagnostics {
+	var diags diag.Diagnostics
 	if h == nil {
-		return
+		return diags
 	}
 	m.ID = types.StringValue(h.GetUuid())
 	m.UUID = types.StringValue(h.GetUuid())
@@ -289,10 +299,17 @@ func (m *hostModel) applyHostInfo(h *weftv1.HostInfo) {
 	m.Endpoint = types.StringValue(h.GetEndpoint())
 	m.Hypervisor = types.StringValue(h.GetHypervisor())
 	m.Architecture = types.StringValue(h.GetArchitecture())
-	m.NetworkTypes, _ = types.ListValueFrom(context.Background(), types.StringType, h.GetNetworkTypes())
-	m.VolumeBackends, _ = types.ListValueFrom(context.Background(), types.StringType, h.GetVolumeBackends())
-	m.Labels, _ = types.MapValueFrom(context.Background(), types.StringType, h.GetLabels())
+	nt, d := types.ListValueFrom(ctx, types.StringType, h.GetNetworkTypes())
+	diags.Append(d...)
+	m.NetworkTypes = nt
+	vb, d := types.ListValueFrom(ctx, types.StringType, h.GetVolumeBackends())
+	diags.Append(d...)
+	m.VolumeBackends = vb
+	lbl, d := types.MapValueFrom(ctx, types.StringType, h.GetLabels())
+	diags.Append(d...)
+	m.Labels = lbl
 	m.State = types.StringValue(h.GetState())
 	m.CreatedAt = types.StringValue(strconv.FormatInt(h.GetCreatedAtUnixNs(), 10))
 	m.LastSeenAt = types.StringValue(strconv.FormatInt(h.GetLastSeenAtUnixNs(), 10))
+	return diags
 }

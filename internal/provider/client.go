@@ -10,6 +10,7 @@
 package provider
 
 import (
+	"log"
 	"os"
 
 	weftv1 "github.com/openweft/weft-proto"
@@ -24,12 +25,26 @@ type weftClient struct {
 	vms  weftv1.WeftAgentClient
 }
 
+// Close releases the underlying gRPC connection. Callers (provider
+// shutdown, tests) should invoke it once they're done with the client to
+// avoid leaking a file descriptor per provider instantiation.
+func (c *weftClient) Close() error {
+	if c == nil || c.conn == nil {
+		return nil
+	}
+	return c.conn.Close()
+}
+
 // defaultSocket returns the operator-visible default for the `socket`
 // provider attribute. Matches weft-agent's hard-coded default ($HOME/
 // .weft/weft.sock) so a default-everything provider block just works
 // when the agent runs locally.
 func defaultSocket() string {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Printf("[WARN] weft provider: cannot determine home directory for default socket: %v; set the `socket` attribute or WEFT_SOCKET explicitly", err)
+		return ""
+	}
 	return home + "/.weft/weft.sock"
 }
 
@@ -37,6 +52,10 @@ func defaultSocket() string {
 // who set ssh_key but leave ssh_socket blank get this path. Mirrors
 // where `weft agent` exposes its SSH-fronted socket by default.
 func defaultSSHSocket() string {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Printf("[WARN] weft provider: cannot determine home directory for default SSH socket: %v; set the `ssh_socket` attribute or WEFT_SSH_SOCKET explicitly", err)
+		return ""
+	}
 	return home + "/.weft/weft-ssh.sock"
 }

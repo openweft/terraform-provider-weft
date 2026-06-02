@@ -168,7 +168,10 @@ func (r *networkResource) Create(ctx context.Context, req resource.CreateRequest
 		resp.Diagnostics.AddError("CreateNetwork failed", err.Error())
 		return
 	}
-	plan.applyNetworkInfo(ctx, out.GetNetwork())
+	resp.Diagnostics.Append(plan.applyNetworkInfo(ctx, out.GetNetwork())...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Default SGs are not part of CreateNetwork; if the operator supplied
 	// some, apply them in a follow-up so create-with-SGs is one apply.
@@ -186,7 +189,10 @@ func (r *networkResource) Create(ctx context.Context, req resource.CreateRequest
 			resp.Diagnostics.AddError("SetNetworkDefaultSecurityGroups failed", err.Error())
 			return
 		}
-		plan.applyNetworkInfo(ctx, out2.GetNetwork())
+		resp.Diagnostics.Append(plan.applyNetworkInfo(ctx, out2.GetNetwork())...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -206,7 +212,10 @@ func (r *networkResource) Read(ctx context.Context, req resource.ReadRequest, re
 		resp.State.RemoveResource(ctx)
 		return
 	}
-	state.applyNetworkInfo(ctx, info)
+	resp.Diagnostics.Append(state.applyNetworkInfo(ctx, info)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -273,7 +282,10 @@ func (r *networkResource) Update(ctx context.Context, req resource.UpdateRequest
 		}
 		latest = info
 	}
-	plan.applyNetworkInfo(ctx, latest)
+	resp.Diagnostics.Append(plan.applyNetworkInfo(ctx, latest)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -334,8 +346,12 @@ func (m *networkModel) applyNetworkInfo(ctx context.Context, n *weftv1.NetworkIn
 	m.CIDR = types.StringValue(n.GetCidr())
 	m.Gateway = types.StringValue(n.GetGateway())
 	m.Type = types.StringValue(n.GetType())
-	m.DNSServers, _ = types.ListValueFrom(ctx, types.StringType, n.GetDnsServers())
-	m.DefaultSecurityGrps, _ = types.ListValueFrom(ctx, types.StringType, n.GetDefaultSecurityGroupUuids())
+	dns, d := types.ListValueFrom(ctx, types.StringType, n.GetDnsServers())
+	diags.Append(d...)
+	m.DNSServers = dns
+	sgs, d := types.ListValueFrom(ctx, types.StringType, n.GetDefaultSecurityGroupUuids())
+	diags.Append(d...)
+	m.DefaultSecurityGrps = sgs
 	m.CreatedAt = types.StringValue(strconv.FormatInt(n.GetCreatedAtUnixNs(), 10))
 	return diags
 }
