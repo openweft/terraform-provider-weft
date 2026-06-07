@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	mockconfig "github.com/openweft/hclconfig"
+	mockconfig "github.com/openweft/weft-hcl"
 )
 
 func NewConfigDataSource() datasource.DataSource { return &configDataSource{} }

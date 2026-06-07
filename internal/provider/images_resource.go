@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	mockconfig "github.com/openweft/hclconfig"
+	mockconfig "github.com/openweft/weft-hcl"
 	weftv1 "github.com/openweft/weft-proto"
 )
 
