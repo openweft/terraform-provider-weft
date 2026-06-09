@@ -2,12 +2,12 @@
 # state/hcl) and returns a fully-resolved list of VMs, suitable for
 # driving weft_instance resources with for_each — without duplicating
 # the configuration in both HCL flavours.
-data "weft_config" "mock" {
+data "weft_config" "weft" {
   config_dir = "state/hcl"
 }
 
 resource "weft_instance" "vms" {
-  for_each = { for vm in data.weft_config.mock.vms : vm.name => vm }
+  for_each = { for vm in data.weft_config.weft.vms : vm.name => vm }
   name     = each.key
   cpu      = each.value.cpu
   mem      = each.value.mem
