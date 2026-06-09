@@ -1,5 +1,5 @@
 // config_data_source.go — `data weft_config` ported from sdk/v2 to
-// terraform-plugin-framework. Reads a mock HCL config dir and returns the
+// terraform-plugin-framework. Reads a weft HCL config dir and returns the
 // fully-resolved list of VMs so consumers can drive weft_instance with
 // for_each.
 
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	mockconfig "github.com/openweft/weft-hcl"
+	wefthcl "github.com/openweft/weft-hcl"
 )
 
 func NewConfigDataSource() datasource.DataSource { return &configDataSource{} }
@@ -46,7 +46,7 @@ func (d *configDataSource) Metadata(_ context.Context, req datasource.MetadataRe
 
 func (d *configDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Reads the mock HCL config directory and returns the resolved list of VMs.",
+		Description: "Reads the weft HCL config directory and returns the resolved list of VMs.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -55,7 +55,7 @@ func (d *configDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 			"config_dir": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "Path to the mock HCL config directory (default \".mock/hcl\").",
+				Description: "Path to the weft HCL config directory (default \"state/hcl\").",
 			},
 			"vms": schema.ListNestedAttribute{
 				Computed:    true,
@@ -88,14 +88,14 @@ func (d *configDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	configDir := ".mock/hcl"
+	configDir := "state/hcl"
 	if !cfg.ConfigDir.IsNull() && !cfg.ConfigDir.IsUnknown() && cfg.ConfigDir.ValueString() != "" {
 		configDir = cfg.ConfigDir.ValueString()
 	}
 
-	rows, err := mockconfig.ReadVMs(configDir)
+	rows, err := wefthcl.ReadVMs(configDir)
 	if err != nil {
-		resp.Diagnostics.AddError("parse mock HCL config", fmt.Sprintf("at %q: %v", configDir, err))
+		resp.Diagnostics.AddError("parse weft HCL config", fmt.Sprintf("at %q: %v", configDir, err))
 		return
 	}
 

@@ -1,6 +1,6 @@
 // endpoint_resource.go — `weft_endpoint` ported from sdk/v2 to
 // terraform-plugin-framework. Purely declarative — no gRPC call. Exists so
-// weft_image can reference weft_endpoint.<name>.url, mirroring mock HCL.
+// weft_image can reference weft_endpoint.<name>.url, mirroring weft HCL.
 
 package provider
 
@@ -30,7 +30,7 @@ func (r *endpointResource) Metadata(_ context.Context, req resource.MetadataRequ
 
 func (r *endpointResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Declares a base URL endpoint — mirrors the mock HCL `endpoint` block.",
+		Description: "Declares a base URL endpoint — mirrors the weft HCL `endpoint` block.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:      true,
@@ -39,7 +39,7 @@ func (r *endpointResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			},
 			"url": schema.StringAttribute{
 				Required:      true,
-				Description:   "Base URL — matches mock HCL endpoint.url.",
+				Description:   "Base URL — matches weft HCL endpoint.url.",
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 		},

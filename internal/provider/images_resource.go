@@ -1,5 +1,5 @@
 // images_resource.go — `weft_images` ported from sdk/v2 to
-// terraform-plugin-framework. Bulk-pulls all images referenced in a mock HCL
+// terraform-plugin-framework. Bulk-pulls all images referenced in a weft HCL
 // config directory via weft's PullImages RPC.
 
 package provider
@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	mockconfig "github.com/openweft/weft-hcl"
+	wefthcl "github.com/openweft/weft-hcl"
 	weftv1 "github.com/openweft/weft-proto"
 )
 
@@ -40,7 +40,7 @@ func (r *imagesResource) Metadata(_ context.Context, req resource.MetadataReques
 
 func (r *imagesResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Pulls all images referenced in the mock HCL config via weft PullImages.",
+		Description: "Pulls all images referenced in the weft HCL config via weft PullImages.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:      true,
@@ -50,7 +50,7 @@ func (r *imagesResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"config_dir": schema.StringAttribute{
 				Optional:      true,
 				Computed:      true,
-				Description:   "Path to the mock HCL config directory (default \".mock/hcl\").",
+				Description:   "Path to the weft HCL config directory (default \"state/hcl\").",
 				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"parallel": schema.Int64Attribute{
@@ -87,7 +87,7 @@ func (r *imagesResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	configDir := ".mock/hcl"
+	configDir := "state/hcl"
 	if !plan.ConfigDir.IsNull() && !plan.ConfigDir.IsUnknown() && plan.ConfigDir.ValueString() != "" {
 		configDir = plan.ConfigDir.ValueString()
 	}
@@ -106,7 +106,7 @@ func (r *imagesResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Enumerate images referenced in the config for tracking. Errors here
 	// are non-fatal — match the sdk/v2 behaviour.
-	rows, _ := mockconfig.ReadVMs(configDir)
+	rows, _ := wefthcl.ReadVMs(configDir)
 	seen := map[string]struct{}{}
 	pulled := make([]string, 0)
 	for _, row := range rows {

@@ -1,7 +1,7 @@
 //go:build acceptance
 
 // config_data_source_acc_test.go — acceptance scaffold for the
-// `weft_config` data source. Reads the mock HCL config directory and
+// `weft_config` data source. Reads the weft HCL config directory and
 // verifies the resolved VMs list is populated. Data sources don't import,
 // so there's no ImportState step here.
 
@@ -22,9 +22,9 @@ func TestAccConfig_basic(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigDataSource_basic(".mock/hcl"),
+				Config: testAccConfigDataSource_basic("state/hcl"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.weft_config.test", "config_dir", ".mock/hcl"),
+					resource.TestCheckResourceAttr("data.weft_config.test", "config_dir", "state/hcl"),
 					resource.TestCheckResourceAttrSet("data.weft_config.test", "id"),
 					resource.TestCheckResourceAttrSet("data.weft_config.test", "vms.#"),
 				),

@@ -45,7 +45,7 @@ func (r *imageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 	requiresReplaceStr := []planmodifier.String{stringplanmodifier.RequiresReplace()}
 
 	resp.Schema = schema.Schema{
-		Description: "Declares an image URL — mirrors the mock HCL `image` block. Pulls the image via weft's PullImage RPC and optionally applies image-level patches.",
+		Description: "Declares an image URL — mirrors the weft HCL `image` block. Pulls the image via weft's PullImage RPC and optionally applies image-level patches.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:      true,
@@ -54,12 +54,12 @@ func (r *imageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 			},
 			"from": schema.StringAttribute{
 				Required:      true,
-				Description:   "Fully-resolved image URL — matches mock HCL image.from.",
+				Description:   "Fully-resolved image URL — matches weft HCL image.from.",
 				PlanModifiers: requiresReplaceStr,
 			},
 			"checksum": schema.StringAttribute{
 				Optional:      true,
-				Description:   "Checksum file URL — matches mock HCL image.checksum.",
+				Description:   "Checksum file URL — matches weft HCL image.checksum.",
 				PlanModifiers: requiresReplaceStr,
 			},
 		},

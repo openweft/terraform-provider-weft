@@ -27,7 +27,7 @@ WeftAgent surface is **98 RPCs**, not 70.
 | `weft_volume_snapshot` | `CreateVolumeSnapshot` · `ListVolumeSnapshots` (Read) · `DeleteVolumeSnapshot` |
 | `weft_security_group` | `CreateSecurityGroup` · `ListSecurityGroups` (Read) · `RenameSecurityGroup` · `SetSecurityGroupDescription` · `SetSecurityGroupRules` · `DeleteSecurityGroup` |
 | `weft_tenant` | `CreateTenant` · `ListTenants` (Read) · `DeleteTenant` |
-| `weft_config` (data) | _none — parses local HCL via `openweft/hclconfig`_ |
+| `weft_config` (data) | _none — parses local HCL via `openweft/weft-hcl`_ |
 
 **Used WeftAgent RPCs (33):** `ProvisionVM`, `DeprovisionVM`, `VMStatus`,
 `PullImage`, `PullImages`, `PatchImage`, `ListImages`, `RegisterHost`,
