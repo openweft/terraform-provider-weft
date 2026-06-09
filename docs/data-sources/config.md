@@ -3,22 +3,22 @@
 page_title: "weft_config Data Source - weft"
 subcategory: ""
 description: |-
-  Reads the mock HCL config directory and returns the resolved list of VMs.
+  Reads the weft HCL config directory and returns the resolved list of VMs.
 ---
 
 # weft_config (Data Source)
 
-Reads the mock HCL config directory and returns the resolved list of VMs.
+Reads the weft HCL config directory and returns the resolved list of VMs.
 
 ## Example Usage
 
 ```terraform
-# weft_config parses the mock HCL config directory (same format as
-# .mock/hcl) and returns a fully-resolved list of VMs, suitable for
+# weft_config parses the weft HCL config directory (same format as
+# state/hcl) and returns a fully-resolved list of VMs, suitable for
 # driving weft_instance resources with for_each — without duplicating
 # the configuration in both HCL flavours.
 data "weft_config" "mock" {
-  config_dir = ".mock/hcl"
+  config_dir = "state/hcl"
 }
 
 resource "weft_instance" "vms" {
@@ -44,7 +44,7 @@ resource "weft_instance" "vms" {
 
 ### Optional
 
-- `config_dir` (String) Path to the mock HCL config directory (default ".mock/hcl").
+- `config_dir` (String) Path to the weft HCL config directory (default "state/hcl").
 
 ### Read-Only
 

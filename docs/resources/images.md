@@ -3,21 +3,21 @@
 page_title: "weft_images Resource - weft"
 subcategory: ""
 description: |-
-  Pulls all images referenced in the mock HCL config via weft PullImages.
+  Pulls all images referenced in the weft HCL config via weft PullImages.
 ---
 
 # weft_images (Resource)
 
-Pulls all images referenced in the mock HCL config via weft PullImages.
+Pulls all images referenced in the weft HCL config via weft PullImages.
 
 ## Example Usage
 
 ```terraform
-# Bulk-pulls every image referenced by the mock HCL config directory via
+# Bulk-pulls every image referenced by the weft HCL config directory via
 # weft's PullImages RPC. Useful when seeding a fresh weft daemon before
 # applying the weft_instance resources that consume those images.
 resource "weft_images" "all" {
-  config_dir = ".mock/hcl"
+  config_dir = "state/hcl"
   parallel   = 4
 }
 
@@ -31,7 +31,7 @@ output "pulled_images" {
 
 ### Optional
 
-- `config_dir` (String) Path to the mock HCL config directory (default ".mock/hcl").
+- `config_dir` (String) Path to the weft HCL config directory (default "state/hcl").
 - `parallel` (Number) Maximum number of images to pull in parallel (default 4).
 
 ### Read-Only
