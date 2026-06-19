@@ -8,7 +8,16 @@ import (
 )
 
 // mockWeftClient implements weftv1.WeftAgentClient for unit testing.
+//
+// We embed the generated WeftAgentClient interface so the struct
+// remains forward-compatible across weft-proto bumps : new RPCs
+// added upstream don't require a stub method here, they just panic
+// on call (which tests then opt into by adding an override). The
+// methods defined below are the ones the TF resources actually
+// exercise.
 type mockWeftClient struct {
+	weftv1.WeftAgentClient
+
 	listVMsFn       func(context.Context, *weftv1.ListVMsRequest, ...grpc.CallOption) (*weftv1.ListVMsResponse, error)
 	listImagesFn    func(context.Context, *weftv1.ListImagesRequest, ...grpc.CallOption) (*weftv1.ListImagesResponse, error)
 	vmStatusFn      func(context.Context, *weftv1.VMStatusRequest, ...grpc.CallOption) (*weftv1.VMStatusResponse, error)
@@ -309,8 +318,8 @@ func (m *mockWeftClient) SetHostState(_ context.Context, _ *weftv1.SetHostStateR
 	return &weftv1.SetHostStateResponse{}, nil
 }
 
-func (m *mockWeftClient) SetHostLabels(_ context.Context, _ *weftv1.SetHostLabelsRequest, _ ...grpc.CallOption) (*weftv1.SetHostLabelsResponse, error) {
-	return &weftv1.SetHostLabelsResponse{}, nil
+func (m *mockWeftClient) SetHostProperties(_ context.Context, _ *weftv1.SetHostPropertiesRequest, _ ...grpc.CallOption) (*weftv1.SetHostPropertiesResponse, error) {
+	return &weftv1.SetHostPropertiesResponse{}, nil
 }
 
 func (m *mockWeftClient) DeleteHost(_ context.Context, _ *weftv1.DeleteHostRequest, _ ...grpc.CallOption) (*weftv1.DeleteHostResponse, error) {

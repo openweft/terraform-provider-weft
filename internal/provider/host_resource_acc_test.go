@@ -42,19 +42,19 @@ func TestAccHost_basic(t *testing.T) {
 	})
 }
 
-// TestAccHost_withLabels covers the labels map + multi-value network_types
+// TestAccHost_withProperties covers the properties map + multi-value network_types
 // to make sure list/map attrs are correctly round-tripped through the
 // proto.
-func TestAccHost_withLabels(t *testing.T) {
+func TestAccHost_withProperties(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccHostConfig_withLabels("acc-host-02"),
+				Config: testAccHostConfig_withProperties("acc-host-02"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("weft_host.test", "hostname", "acc-host-02"),
-					resource.TestCheckResourceAttr("weft_host.test", "labels.tier", "edge"),
+					resource.TestCheckResourceAttr("weft_host.test", "properties.tier", "edge"),
 					resource.TestCheckResourceAttr("weft_host.test", "network_types.#", "2"),
 					resource.TestCheckResourceAttrSet("weft_host.test", "uuid"),
 				),
@@ -78,7 +78,7 @@ resource "weft_host" "test" {
 `, hostname)
 }
 
-func testAccHostConfig_withLabels(hostname string) string {
+func testAccHostConfig_withProperties(hostname string) string {
 	return fmt.Sprintf(`
 provider "weft" {}
 
@@ -92,7 +92,7 @@ resource "weft_host" "test" {
 
   network_types   = ["nat", "bridged"]
   volume_backends = ["file"]
-  labels = {
+  properties = {
     tier = "edge"
     role = "compute"
   }

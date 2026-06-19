@@ -25,7 +25,7 @@ func TestHostResource_Schema(t *testing.T) {
 	}
 	want := []string{
 		"id", "uuid", "hostname", "az", "rack", "endpoint", "hypervisor",
-		"architecture", "network_types", "volume_backends", "labels",
+		"architecture", "network_types", "volume_backends", "properties",
 		"state", "created_at", "last_seen_at",
 	}
 	for _, name := range want {

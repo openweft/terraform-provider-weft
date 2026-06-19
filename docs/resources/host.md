@@ -26,7 +26,7 @@ Registers a host in the weft cluster's host registry. Mirrors the RegisterHost /
 ### Optional
 
 - `architecture` (String) CPU architecture: "arm64" | "amd64" | "riscv64". Inferred by the agent on first register if left blank. Immutable.
-- `labels` (Map of String) Operator-set free-form labels. Read by scheduling rule selectors.
+- `properties` (Map of String) Operator-set free-form key/value properties. Read by scheduling rule selectors.
 - `network_types` (List of String) Network backends the host supports. Defaults to ["nat","bridged","isolated","mesh"].
 - `volume_backends` (List of String) Volume backends the host supports. Defaults to ["file"].
 

@@ -14,9 +14,9 @@
 //   Import        →  uuid → GetHost
 //
 // hostname + hypervisor + architecture are RequiresReplace (changing those
-// implies a different physical host). az/rack/endpoint/labels/network_types/
+// implies a different physical host). az/rack/endpoint/properties/network_types/
 // volume_backends are mutable — `weft up` may move a host between racks
-// during a cluster reshuffle, or relabel for selector changes, and we want
+// during a cluster reshuffle, or rewrite properties for selector changes, and we want
 // the Terraform path to model that without forcing a destroy/recreate.
 
 package provider
@@ -65,7 +65,7 @@ type hostModel struct {
 	Architecture   types.String `tfsdk:"architecture"`
 	NetworkTypes   types.List   `tfsdk:"network_types"`
 	VolumeBackends types.List   `tfsdk:"volume_backends"`
-	Labels         types.Map    `tfsdk:"labels"`
+	Properties     types.Map    `tfsdk:"properties"`
 	State          types.String `tfsdk:"state"`
 	CreatedAt      types.String `tfsdk:"created_at"`
 	LastSeenAt     types.String `tfsdk:"last_seen_at"`
@@ -134,11 +134,11 @@ func (r *hostResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				ElementType: types.StringType,
 				Description: `Volume backends the host supports. Defaults to ["file"].`,
 			},
-			"labels": schema.MapAttribute{
+			"properties": schema.MapAttribute{
 				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
-				Description: "Operator-set free-form labels. Read by scheduling rule selectors.",
+				Description: "Operator-set free-form key/value properties. Read by scheduling rule selectors.",
 			},
 			"state":         schema.StringAttribute{Computed: true, Description: `active | draining | down — observed by the control plane.`},
 			"created_at":    schema.StringAttribute{Computed: true, Description: "Unix nanosecond timestamp of first registration."},
@@ -276,10 +276,10 @@ func (m *hostModel) toRegisterRequest(ctx context.Context) (*weftv1.RegisterHost
 	if !m.VolumeBackends.IsNull() && !m.VolumeBackends.IsUnknown() {
 		diags.Append(m.VolumeBackends.ElementsAs(ctx, &reqMsg.VolumeBackends, false)...)
 	}
-	if !m.Labels.IsNull() && !m.Labels.IsUnknown() {
-		labels := make(map[string]string)
-		diags.Append(m.Labels.ElementsAs(ctx, &labels, false)...)
-		reqMsg.Labels = labels
+	if !m.Properties.IsNull() && !m.Properties.IsUnknown() {
+		props := make(map[string]string)
+		diags.Append(m.Properties.ElementsAs(ctx, &props, false)...)
+		reqMsg.Properties = props
 	}
 	return reqMsg, diags
 }
@@ -305,9 +305,9 @@ func (m *hostModel) applyHostInfo(ctx context.Context, h *weftv1.HostInfo) diag.
 	vb, d := types.ListValueFrom(ctx, types.StringType, h.GetVolumeBackends())
 	diags.Append(d...)
 	m.VolumeBackends = vb
-	lbl, d := types.MapValueFrom(ctx, types.StringType, h.GetLabels())
+	props, d := types.MapValueFrom(ctx, types.StringType, h.GetProperties())
 	diags.Append(d...)
-	m.Labels = lbl
+	m.Properties = props
 	m.State = types.StringValue(h.GetState())
 	m.CreatedAt = types.StringValue(strconv.FormatInt(h.GetCreatedAtUnixNs(), 10))
 	m.LastSeenAt = types.StringValue(strconv.FormatInt(h.GetLastSeenAtUnixNs(), 10))
