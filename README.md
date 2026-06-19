@@ -1,3 +1,5 @@
+<p align="center"><img src="https://raw.githubusercontent.com/openweft/brand/main/social/openweft.png" alt="openweft" width="720"></p>
+
 # terraform-provider-weft
 
 Terraform provider for `weft`. Provisions and manages VMs via the weft gRPC API, with optional SSH transport for remote access.
