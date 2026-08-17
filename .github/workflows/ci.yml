@@ -39,14 +39,26 @@ jobs:
 
   terraform-fmt:
     runs-on: ubuntu-latest
-    # No-op until examples/ lands; gates auto-activates when it does.
-    if: hashFiles('examples/**') != ''
     steps:
       - uses: actions/checkout@v7
 
+      # No-op until examples/ lands; the fmt steps auto-activate when it does.
+      # hashFiles() is not valid in a job-level `if:`, so the gate lives in a
+      # step that publishes an output the later steps key off of.
+      - name: Detect examples
+        id: detect
+        run: |
+          if [ -n "$(find examples -type f 2>/dev/null)" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: hashicorp/setup-terraform@v3
+        if: steps.detect.outputs.present == 'true'
         with:
           terraform_wrapper: false
 
       - name: terraform fmt
+        if: steps.detect.outputs.present == 'true'
         run: terraform fmt -check -recursive examples/
