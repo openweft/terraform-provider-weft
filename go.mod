@@ -1,6 +1,6 @@
 module github.com/openweft/terraform-provider-weft
 
-go 1.25.8
+go 1.26.4
 
 require (
 	github.com/grpc-transports/ssh v0.2.0
