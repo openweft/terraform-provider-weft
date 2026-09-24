@@ -65,6 +65,6 @@ Installs the binary to `~/.terraform.d/plugins/registry.terraform.io/openweft/we
 
 ## Related
 
-- [`weft`](../weft) — daemon
-- [`weft-proto`](../weft-proto) — gRPC service definition
-- [`ssh`](../../grpc-transports/ssh) — SSH transport
+- [`weft`](https://github.com/openweft/weft) — daemon
+- [`weft-proto`](https://github.com/openweft/weft-proto) — gRPC service definition
+- [`ssh`](https://github.com/grpc-transports/ssh) — SSH transport
