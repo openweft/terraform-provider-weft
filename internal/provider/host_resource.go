@@ -140,9 +140,9 @@ func (r *hostResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				ElementType: types.StringType,
 				Description: "Operator-set free-form key/value properties. Read by scheduling rule selectors.",
 			},
-			"state":         schema.StringAttribute{Computed: true, Description: `active | draining | down — observed by the control plane.`},
-			"created_at":    schema.StringAttribute{Computed: true, Description: "Unix nanosecond timestamp of first registration."},
-			"last_seen_at":  schema.StringAttribute{Computed: true, Description: "Unix nanosecond timestamp of most recent heartbeat."},
+			"state":        schema.StringAttribute{Computed: true, Description: `active | draining | down — observed by the control plane.`},
+			"created_at":   schema.StringAttribute{Computed: true, Description: "Unix nanosecond timestamp of first registration."},
+			"last_seen_at": schema.StringAttribute{Computed: true, Description: "Unix nanosecond timestamp of most recent heartbeat."},
 		},
 	}
 }
