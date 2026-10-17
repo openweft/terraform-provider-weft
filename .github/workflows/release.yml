@@ -13,6 +13,13 @@ permissions:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    env:
+      # The registry (registry.terraform.io) only indexes a release whose
+      # SHA256SUMS carries a detached GPG signature from a registered key
+      # (see RELEASING.md). When the two signing secrets are not set, the
+      # binaries still ship to the GitHub Release, unsigned, with a
+      # warning, instead of the whole release dying in `gpg --import`.
+      HAVE_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_FINGERPRINT != '' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -24,14 +31,22 @@ jobs:
           cache: true
 
       - name: Import GPG key
-        run: echo -n "${GPG_PRIVATE_KEY}" | gpg --batch --import
+        if: env.HAVE_GPG_KEY == 'true'
+        run: |
+          set -euo pipefail
+          printf '%s\n' "${GPG_PRIVATE_KEY}" | gpg --batch --import
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
+      - name: No signing key configured
+        if: env.HAVE_GPG_KEY != 'true'
+        run: |
+          echo "::warning::GPG_PRIVATE_KEY / GPG_FINGERPRINT are not set: SHA256SUMS is NOT signed and registry.terraform.io will not index this release. See RELEASING.md, 'One-time setup'."
+
       - uses: goreleaser/goreleaser-action@v6
         with:
-          version: latest
-          args: release --clean
+          version: '~> v2'
+          args: release --clean ${{ env.HAVE_GPG_KEY != 'true' && '--skip=sign' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ secrets.GPG_FINGERPRINT }}
